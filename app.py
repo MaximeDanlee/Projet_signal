@@ -89,7 +89,7 @@ def polar_to_cartesian (image, x, y, radius):
 
 if __name__ == '__main__':
 
-    img = cv2.imread('test4.jpg')
+    img = cv2.imread('test.jpg')
     gray_img, threshold, canny_edges, result, x, y, radius = isolate_iris(img)
 
     polar_img, polar_threshold = polar_to_cartesian(result, x, y, radius)
