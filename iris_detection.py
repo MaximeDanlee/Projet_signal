@@ -9,6 +9,15 @@ gamma = -48
 
 # gamma is -48 for UBIRIS database
 
+def polar_to_cartesian (image, center, radius):
+    # Do the polar rotation along 1024 angular steps with a radius of 256 pixels.
+    polar_img = cv2.warpPolar(image, (256, 1024), center, radius * 2, cv2.WARP_POLAR_LINEAR)
+    # Rotate it sideways to be more visually pleasing
+    polar_img = cv2.rotate(polar_img, cv2.ROTATE_90_COUNTERCLOCKWISE)
+
+    _, threshold = cv2.threshold(polar_img, 100, 255, cv2.THRESH_BINARY_INV)
+    return polar_img, threshold
+
 def Grabcut(image):  # function to differentiat foreground and background
     mask = np.zeros((image.shape[0], image.shape[1]), np.uint8)
     bgdModel = np.zeros((1, 65), np.float64)
@@ -85,6 +94,11 @@ for i in range(len(images)):
             if hypot(k - inner_circle[0], j - inner_circle[1]) >= inner_circle[2]:
                 gray_image[j, k] = 0
     cv2.imshow("output2_" + name, gray_image)
-    cv2.waitKey(0)
 
+    # polar to cartesian
+    polar_img, polar_threshold = polar_to_cartesian (gray_image, (inner_circle[0], inner_circle[1]), inner_circle[2])
+    cv2.imshow("polar_img", polar_img)
+    cv2.imshow("polar_threshold ", polar_threshold )
+    cv2.waitKey(0)
+    
     cv2.destroyAllWindows()

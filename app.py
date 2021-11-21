@@ -2,7 +2,6 @@
 import cv2
 import numpy as np
 
-
 def verificationCircle(contours):
     for cercle in contours:
         # centre du cercle
@@ -11,6 +10,45 @@ def verificationCircle(contours):
         print(radius)
         if radius > 10:
             return cercle
+
+def Grabcut(image):  # function to differentiat foreground and background
+    mask = np.zeros((image.shape[0], image.shape[1]), np.uint8)
+    bgdModel = np.zeros((1, 65), np.float64)
+    fgdModel = np.zeros((1, 65), np.float64)
+    h = image.shape[0]
+    w = image.shape[1]
+    rect = (int(w/4), int(h/4), int(w*3/4), int(h*3/4))
+    """
+    cv2.rectangle(image,(int(w/4),int(h/4)),(int(w*3/4),int(h*3/4)),(0,255,0),2)
+    cv2.imshow("rect",image)
+    cv2.waitKey(0)"""
+    cv2.grabCut(image, mask, rect, bgdModel, fgdModel, 5, cv2.GC_INIT_WITH_RECT)
+    mask2 = np.where((mask == 2) | (mask == 0), 0, 1).astype('uint8')
+    img = image * mask2[:, :, np.newaxis]
+    return img
+
+
+def noise_reduction(image):  # all noise cancelling process for CHT
+    inverted_gray = cv2.bitwise_not(image)
+    cv2.imshow("inverted_gray", inverted_gray)
+    cv2.waitKey(0)
+    kernel = np.ones((5, 5), np.uint8)
+    black_hat = cv2.morphologyEx(inverted_gray, cv2.MORPH_BLACKHAT, kernel)
+    cv2.imshow("Black_hat", black_hat)
+    cv2.waitKey(0)
+    no_reflec = cv2.add(inverted_gray, black_hat)
+    median_blur = cv2.medianBlur(no_reflec, 5)
+    #cv2.equalizeHist(median_blur)
+    cv2.imshow("Median_blur ", median_blur)
+    cv2.waitKey(0)
+
+    retval, thres_image = cv2.threshold(cv2.bitwise_not(median_blur), 100, 255, cv2.THRESH_BINARY_INV)
+
+    cv2.imshow("thresh ", thres_image)
+    cv2.waitKey(0)
+    canny = cv2.Canny(thres_image, 200, 100)
+    return canny
+
 
 def isolate_iris(img):
 
@@ -89,16 +127,29 @@ def polar_to_cartesian (image, x, y, radius):
 if __name__ == '__main__':
 
     img = cv2.imread('test.jpg')
-    gray_img, threshold, canny_edges, result, x, y, radius = isolate_iris(img)
 
-    polar_img, polar_threshold = polar_to_cartesian(result, x, y, radius)
+    img = Grabcut(img) # isoler l'oeil
+
+    img_canny = noise_reduction(img)
+
+    circles = cv2.HoughCircles(img_canny, cv2.HOUGH_GRADIENT, 1, 20, param1=200, param2=20, minRadius=0)
+
+    if circles is not None:
+        inner_circle = np.uint16(np.around(circles[0][0])).tolist()
+    cv2.circle(img, (inner_circle[0], inner_circle[1]), inner_circle[2], (0, 255, 0), 1)
+    cv2.imshow("HoughCircle ", img)
+    cv2.waitKey(0)
+
+    #gray_img, threshold, canny_edges, result, x, y, radius = isolate_iris(img)
+
+    #polar_img, polar_threshold = polar_to_cartesian(result, x, y, radius)
 
     # show the image
     cv2.imshow("Image", img)
     #cv2.imshow("gray", gray_img)
     #cv2.imshow("thres", threshold)
     #cv2.imshow("canny", canny_edges)
-    cv2.imshow("result", result)
-    cv2.imshow("cart", polar_img)
-    cv2.imshow("pt", polar_threshold)
+    #cv2.imshow("result", result)
+    #cv2.imshow("cart", polar_img)
+    #cv2.imshow("pt", polar_threshold)
     cv2.waitKey(0)
