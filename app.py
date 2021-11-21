@@ -1,3 +1,4 @@
+
 import cv2
 import numpy as np
 
@@ -71,19 +72,33 @@ def isolate_iris(img):
     result = cv2.bitwise_and(img, mask)
     result[mask == 0] = 255  # Color background white
 
-    return gray_img, threshold, canny_edges, result
+    return gray_img, threshold, canny_edges, result, x, y, radius
 
 
+
+
+def polar_to_cartesian (image, x, y, radius):
+    # Do the polar rotation along 1024 angular steps with a radius of 256 pixels.
+    polar_img = cv2.warpPolar(image, (256, 1024), (x, y), radius * 2, cv2.WARP_POLAR_LINEAR)
+    # Rotate it sideways to be more visually pleasing
+    polar_img = cv2.rotate(polar_img, cv2.ROTATE_90_COUNTERCLOCKWISE)
+    polar_img = cv2.cvtColor(polar_img, cv2.COLOR_BGR2GRAY)
+    _, threshold = cv2.threshold(polar_img, 100, 255, cv2.THRESH_BINARY_INV)
+    return polar_img, threshold
 
 if __name__ == '__main__':
 
-    img = cv2.imread('test.jpg')
-    gray_img, threshold, canny_edges, result = isolate_iris(img)
+    img = cv2.imread('test4.jpg')
+    gray_img, threshold, canny_edges, result, x, y, radius = isolate_iris(img)
+
+    polar_img, polar_threshold = polar_to_cartesian(result, x, y, radius)
 
     # show the image
     cv2.imshow("Image", img)
     #cv2.imshow("gray", gray_img)
-    cv2.imshow("thres", threshold)
-    cv2.imshow("canny", canny_edges)
+    #cv2.imshow("thres", threshold)
+    #cv2.imshow("canny", canny_edges)
     cv2.imshow("result", result)
+    cv2.imshow("cart", polar_img)
+    cv2.imshow("pt", polar_threshold)
     cv2.waitKey(0)
