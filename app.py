@@ -1,7 +1,6 @@
+
 import cv2
 import numpy as np
-import imutils  # pip install imutils
-import sys
 
 
 def verificationCircle(contours):
