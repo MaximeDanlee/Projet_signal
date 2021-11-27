@@ -3,6 +3,7 @@ import numpy as np
 import os
 import math
 from math import hypot
+from compare import compare
 
 gamma = -48
 
@@ -114,6 +115,6 @@ for i in range(len(images)):
 
     # write image result on disk
     cv2.imwrite(f'result/result{i}.png', polar_threshold) 
-    print(f"done : {i}")
     
-    #cv2.destroyAllWindows()
+    # compare result
+    compare()
