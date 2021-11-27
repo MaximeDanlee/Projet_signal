@@ -94,8 +94,8 @@ for i in range(len(images)):
     if circles is not None:
         inner_circle = np.uint16(np.around(circles[0][0])).tolist()
     cv2.circle(image, (inner_circle[0], inner_circle[1]), inner_circle[2], (0, 255, 0), 1)
-    ##cv2.imshow("HoughCircle " + name, image)
-    #cv2.waitKey(0)
+    cv2.imshow("HoughCircle " + name, image)
+    cv2.waitKey(0)
 
 
     # crop image by comparing each pixel dsitance from center with radius
@@ -107,11 +107,13 @@ for i in range(len(images)):
 
     # polar to cartesian
     polar_img, polar_threshold = polar_to_cartesian (gray_image, (inner_circle[0], inner_circle[1]), inner_circle[2])
-    ##cv2.imshow("polar_img", polar_img)
-    ##cv2.imshow("polar_threshold ", polar_threshold )
+    #cv2.imshow("polar_img", polar_img)
+    #cv2.imshow("polar_threshold ", polar_threshold )
     #cv2.waitKey(0)
 
-    cv2.imwrite(f'result/result{i}.png', polar_img) 
+
+    # write image result on disk
+    cv2.imwrite(f'result/result{i}.png', polar_threshold) 
     print(f"done : {i}")
     
     #cv2.destroyAllWindows()
