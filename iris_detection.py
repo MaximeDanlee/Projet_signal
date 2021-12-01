@@ -5,10 +5,6 @@ import math
 from math import hypot
 from compare import compare
 
-gamma = -48
-
-
-# gamma is -48 for UBIRIS database
 
 def polar_to_cartesian (image, center, radius):
 
@@ -40,30 +36,29 @@ def Grabcut(image):  # function to differentiat foreground and background
     return img
 
 
-def noise_reduction(image):  # all noise cancelling process for CHT
-    inverted_gray = cv2.bitwise_not(image)
-    kernel = np.ones((5, 5), np.uint8)
-    black_hat = cv2.morphologyEx(inverted_gray, cv2.MORPH_BLACKHAT, kernel)
+def noise_reduction(image):
+    inverted_gray = cv2.bitwise_not(image)                                      # inversion du gris
+    kernel = np.ones((5, 5), np.uint8)                                          # création d'un tableau de 5/5
+    black_hat = cv2.morphologyEx(inverted_gray, cv2.MORPH_BLACKHAT, kernel)     # Ici, dans cette image, tous les objets qui sont blancs sur un fond sombre sont mis en évidence en raison de la transformation Black Hat appliquée à l'image d'entrée.
     #cv2.imshow("Black_hat" + name, black_hat)
     #cv2.waitKey(0)
-    no_reflec = cv2.add(inverted_gray, black_hat)
-    median_blur = cv2.medianBlur(no_reflec, 5)
+    no_reflec = cv2.add(inverted_gray, black_hat)                               # on additionne l'image grise et l'image black_hat
+    median_blur = cv2.medianBlur(no_reflec, 5)                                  # on enlève le bruit 
     cv2.equalizeHist(median_blur)
-    #cv2.imshow("Median_blur " + name, median_blur)
-    #cv2.waitKey(0)
+    cv2.imshow("Median_blur " + name, median_blur)
+    cv2.waitKey(0)
 
     retval, thres_image = cv2.threshold(cv2.bitwise_not(median_blur), 100, 255, cv2.THRESH_BINARY_INV)
 
     #cv2.imshow("thresh " + name, thres_image)
     #cv2.waitKey(0)
-    canny = cv2.Canny(thres_image, 200, 100)
+    canny = cv2.Canny(thres_image, 200, 100)                                    # on récupère les contours de l'image
     return canny
 
 
 images = []
 names = []
-# running the complete set of image database from the folder ”data" for filename in
-
+# parcourir toutes les images dans le dossier data
 for filename in os.listdir("data"):
     if filename is not None:
         image = cv2.imread(os.path.join("data", filename), 1)
@@ -73,23 +68,25 @@ for filename in os.listdir("data"):
 for i in range(len(images)):
     name = names[i]
     image = images[i]
-
-    ##cv2.imshow("input_" + name, image)
-    #cv2.waitKey(0)
     x, y, z = image.shape
 
 
-    # crop only eye
-    #image = Grabcut(image)
+    # Isoler l'oeil pour avoir moins d'information à traiter
+    # image = Grabcut(image)
+
+
+    # Transformer l'image en gris
     gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     ##cv2.imshow("Grab_cut " + name, gray_image)
     #cv2.waitKey(0)
 
 
-    # circle detection 
+    # filtre de canny
     ipfilter = noise_reduction(gray_image)
     ##cv2.imshow("CED " + name, ipfilter)
     #cv2.waitKey(0)
+
+    # repérer les cercles dans l'image
     circles = cv2.HoughCircles(ipfilter, cv2.HOUGH_GRADIENT, 1, 20, param1=200, param2=20, minRadius=0)
 
     if circles is not None:
@@ -99,21 +96,21 @@ for i in range(len(images)):
     cv2.waitKey(0)
 
 
-    # crop image by comparing each pixel dsitance from center with radius
+    # recadrer l'image en comparant chaque distance de pixel du centre avec le rayon
     for j in range(x):
         for k in range(y):
             if hypot(k - inner_circle[0], j - inner_circle[1]) >= inner_circle[2]:
                 gray_image[j, k] = 0
     ##cv2.imshow("output2_" + name, gray_image)
 
-    # polar to cartesian
+    # polair vers cartesian
     polar_img, polar_threshold = polar_to_cartesian (gray_image, (inner_circle[0], inner_circle[1]), inner_circle[2])
     #cv2.imshow("polar_img", polar_img)
     #cv2.imshow("polar_threshold ", polar_threshold )
     #cv2.waitKey(0)
 
 
-    # write image result on disk
+    # sauvegarder le resultat sur le disque
     cv2.imwrite(f'result/result{i}.png', polar_threshold) 
     
     # compare result
