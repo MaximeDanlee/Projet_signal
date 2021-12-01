@@ -3,19 +3,18 @@ import numpy as np
 import os
 
 def compare():
-    #--- take the absolute difference of the images ---
     imagetoCompare = []
     images = []
     names = []
     results = []
 
-    # find image to compare
+    # récupère l'image à comparer
     for person in os.listdir("result"):
         if person is not None:
             image = cv2.imread(os.path.join(f"result/", person), 1)
             imagetoCompare = image
 
-    # find all images in database
+    # récupère les images dans la base de données
     for person in os.listdir("database"):
         for filename in os.listdir(f"database/{person}"):
             if filename is not None:
@@ -28,19 +27,17 @@ def compare():
         name = names[i]
         image = images[i]
 
-        res = cv2.absdiff(imagetoCompare, image)
+        res = cv2.absdiff(imagetoCompare, image)                    # permet de faire la différence entre les deux images
 
-        #--- convert the result to integer type ---
-        res = res.astype(np.uint8)
+        res = res.astype(np.uint8)                                  # converti le resultat en entier
 
-        #--- find percentage difference based on number of pixels that are not zero ---
-        percentage = (np.count_nonzero(res) * 100)/ res.size
+        percentage = (np.count_nonzero(res) * 100)/ res.size        # trouver la différence de pourcentage en fonction du nombre de pixels qui ne sont pas nuls
         results.append([name, percentage])
 
     score = 1000
     nameResult = "Nobody"
     for result in results:
-        if result[1] < score and result[1] < 20:
+        if result[1] < score and result[1] < 20:                    # permet de trouver l'image qui à le plus grand pourcentage et à minimum un pourcentage de 80%
             score = result[1]
             nameResult = result[0]
 
