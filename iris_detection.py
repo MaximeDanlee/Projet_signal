@@ -96,12 +96,13 @@ for i in range(len(images)):
     cv2.waitKey(0)
 
 
-    # recadrer l'image en comparant chaque distance de pixel du centre avec le rayon
-    for j in range(x):
-        for k in range(y):
-            if hypot(k - inner_circle[0], j - inner_circle[1]) >= inner_circle[2]:
-                gray_image[j, k] = 0
-    ##cv2.imshow("output2_" + name, gray_image)
+    # recadrer l'image grâce au centre et au rayon du cercle
+    mask = np.zeros(gray_image.shape,np.uint8)
+    new_image = cv2.circle(mask, (inner_circle[0], inner_circle[1]), inner_circle[2], (255, 255, 255), -1)
+    gray_image = cv2.bitwise_and(gray_image,gray_image,mask=mask)
+
+    cv2.imshow("output2_" + name, gray_image)
+    cv2.waitKey(0)
 
     # polair vers cartesian
     polar_img, polar_threshold = polar_to_cartesian (gray_image, (inner_circle[0], inner_circle[1]), inner_circle[2])
