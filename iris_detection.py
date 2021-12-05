@@ -19,7 +19,7 @@ def polar_to_cartesian (image, center, radius):
     _, threshold = cv2.threshold(polar_img, 100, 255, cv2.THRESH_BINARY_INV)
     return polar_img, threshold
 
-def Grabcut(image):  # function to differentiat foreground and background
+def grab_cut(image):  # fonction qui permet de différencier le premier du second plan : isoler second plan
     mask = np.zeros((image.shape[0], image.shape[1]), np.uint8)
     bgdModel = np.zeros((1, 65), np.float64)
     fgdModel = np.zeros((1, 65), np.float64)
@@ -40,16 +40,16 @@ def noise_reduction(image):
     inverted_gray = cv2.bitwise_not(image)                                      # inversion du gris
     kernel = np.ones((5, 5), np.uint8)                                          # création d'un tableau de 5/5
     black_hat = cv2.morphologyEx(inverted_gray, cv2.MORPH_BLACKHAT, kernel)     # Ici, dans cette image, tous les objets qui sont blancs sur un fond sombre sont mis en évidence en raison de la transformation Black Hat appliquée à l'image d'entrée.
-    #cv2.imshow("Black_hat" + name, black_hat)
-    #cv2.waitKey(0)
     no_reflec = cv2.add(inverted_gray, black_hat)                               # on additionne l'image grise et l'image black_hat
     median_blur = cv2.medianBlur(no_reflec, 5)                                  # on enlève le bruit 
-    cv2.equalizeHist(median_blur)
-    cv2.imshow("Median_blur " + name, median_blur)
-    cv2.waitKey(0)
+    
+    #cv2.imshow("Black_hat" + name, black_hat)
+    #cv2.imshow("inverted_gray" + name, inverted_gray)
+    #cv2.imshow("no_reflec" + name, no_reflec)
+    #cv2.imshow("Median_blur" + name, median_blur)
+    #cv2.waitKey(0)
 
     retval, thres_image = cv2.threshold(cv2.bitwise_not(median_blur), 100, 255, cv2.THRESH_BINARY_INV)
-
     #cv2.imshow("thresh " + name, thres_image)
     #cv2.waitKey(0)
     canny = cv2.Canny(thres_image, 200, 100)                                    # on récupère les contours de l'image
@@ -83,8 +83,8 @@ for i in range(len(images)):
 
     # filtre de canny
     ipfilter = noise_reduction(gray_image)
-    ##cv2.imshow("CED " + name, ipfilter)
-    #cv2.waitKey(0)
+    cv2.imshow("CED " + name, ipfilter)
+    cv2.waitKey(0)
 
     # repérer les cercles dans l'image
     circles = cv2.HoughCircles(ipfilter, cv2.HOUGH_GRADIENT, 1, 20, param1=200, param2=20, minRadius=0)
@@ -105,14 +105,14 @@ for i in range(len(images)):
     cv2.waitKey(0)
 
     # polair vers cartesian
-    polar_img, polar_threshold = polar_to_cartesian (gray_image, (inner_circle[0], inner_circle[1]), inner_circle[2])
-    #cv2.imshow("polar_img", polar_img)
-    #cv2.imshow("polar_threshold ", polar_threshold )
-    #cv2.waitKey(0)
+    cart_img, cart_threshold = polar_to_cartesian(gray_image, (inner_circle[0], inner_circle[1]), inner_circle[2])
+    cv2.imshow("Cartesian" + name, cart_img)
+    cv2.imshow("Cartesian_thresh" + name, cart_threshold )
+    cv2.waitKey(0)
 
 
     # sauvegarder le resultat sur le disque
-    cv2.imwrite(f'result/result{i}.png', polar_threshold) 
+    cv2.imwrite(f'result/result{i}.png', cart_threshold) 
     
     # compare result
     compare()
