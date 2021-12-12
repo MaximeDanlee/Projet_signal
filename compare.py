@@ -42,6 +42,6 @@ def compare():
             nameResult = result[0]
 
     if score != 1000:
-        print("c'est", nameResult, "à", round(100 - score, 2), "%")
+        print("C'est", nameResult, "à", round(100 - score, 2), "%")
     else:
         print("Nobody")
